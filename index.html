@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kalau VPS-ku Mati — Panduan Pulihkan Hermes</title>
+<meta name="description" content="Panduan lengkap memulihkan Hermes Agent di VPS baru dari backup Google Drive, tanpa kehilangan memori, skill, dan konfigurasi." />
+<meta name="theme-color" content="#0d0b12" />
+<meta property="og:title" content="Kalau VPS-ku Mati — Panduan Pulihkan Hermes" />
+<meta property="og:description" content="Langkah demi langkah memulihkan Hermes di VPS baru dari backup Google Drive." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩷</text></svg>" />
+<style>
+  :root{
+    --bg:#fdf7fa; --card:#ffffff; --ink:#2a1f2a; --muted:#7d6b76;
+    --line:#f0dde6; --accent:#e8437f; --accent-soft:#fde7ef;
+    --code-bg:#1d1620; --code-ink:#f6e9f0; --ok:#1f9d63;
+    --shadow:0 1px 2px rgba(42,31,42,.06), 0 8px 24px rgba(42,31,42,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d0b12; --card:#161320; --ink:#f2e9f0; --muted:#a493a3;
+      --line:#2a2337; --accent:#ff5fa2; --accent-soft:#2a1725;
+      --code-bg:#08060c; --code-ink:#f3e6ee; --ok:#3ddc97;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    font-size:16px; line-height:1.65; letter-spacing:-.01em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 18px 80px}
+  a{color:var(--accent)}
+  h1,h2,h3{line-height:1.25; letter-spacing:-.02em; margin:0}
+  h1{font-size:clamp(1.7rem,6vw,2.5rem)}
+  h2{font-size:1.22rem}
+  h3{font-size:1rem}
+  p{margin:.7em 0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.87em;
+       background:var(--accent-soft); padding:.12em .38em; border-radius:5px}
+  /* hero */
+  header.hero{padding:34px 0 18px}
+  .kicker{display:inline-flex; align-items:center; gap:8px; font-size:.72rem; font-weight:700;
+          letter-spacing:.14em; text-transform:uppercase; color:var(--accent);
+          background:var(--accent-soft); padding:6px 12px; border-radius:999px}
+  header.hero p.lead{color:var(--muted); font-size:1.02rem; margin-top:14px}
+  .facts{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:22px}
+  @media (max-width:520px){ .facts{grid-template-columns:1fr} }
+  .fact{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px}
+  .fact b{display:block; font-size:.95rem}
+  .fact span{color:var(--muted); font-size:.8rem}
+  /* nav chips */
+  nav.chips{position:sticky; top:0; z-index:20; backdrop-filter:blur(12px);
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    border-bottom:1px solid var(--line); margin:18px -18px 0; padding:10px 34px 10px 18px;
+    display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 26px),transparent 100%);
+    mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 26px),transparent 100%)}
+  nav.chips::-webkit-scrollbar{display:none}
+  nav.chips a{flex:0 0 auto; font-size:.78rem; font-weight:600; text-decoration:none;
+    color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:6px 11px;
+    background:var(--card); white-space:nowrap; transition:background .18s,color .18s,border-color .18s}
+  nav.chips a.active{background:var(--accent); border-color:var(--accent); color:#fff}
+  nav.chips a:active{background:var(--accent-soft); color:var(--accent)}
+  .progress{height:3px; background:var(--line); border-radius:999px; margin:16px 0 0; overflow:hidden}
+  .progress i{display:block; height:100%; width:0; background:var(--accent); transition:width .3s ease}
+  /* step cards */
+  section.step{background:var(--card); border:1px solid var(--line); border-radius:18px;
+    padding:20px 18px; margin:16px 0; box-shadow:var(--shadow); scroll-margin-top:64px}
+  .step-head{display:flex; gap:12px; align-items:flex-start}
+  .num{flex:0 0 34px; height:34px; border-radius:11px; background:var(--accent-soft); color:var(--accent);
+       font-weight:800; font-size:.95rem; display:grid; place-items:center}
+  .step-head .t{flex:1}
+  .step-head .t span{display:block; color:var(--muted); font-size:.8rem; margin-top:2px}
+  .step-body{margin-top:14px}
+  ul,ol{padding-left:1.15em; margin:.6em 0}
+  li{margin:.3em 0}
+  /* code */
+  .code{position:relative; margin:12px 0; border-radius:12px; overflow:hidden; background:var(--code-bg)}
+  .code pre{margin:0; padding:36px 14px 14px; overflow-x:auto; color:var(--code-ink);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.82rem; line-height:1.6;
+    white-space:pre-wrap; overflow-wrap:anywhere; tab-size:2}
+  .code button{position:absolute; top:8px; right:8px; border:1px solid #3a3145; background:#241d2e;
+    color:#cbbccd; font-size:.7rem; font-weight:600; padding:5px 9px; border-radius:8px; cursor:pointer}
+  .code button:active{background:var(--accent); color:#fff; border-color:var(--accent)}
+  /* callouts */
+  .note,.warn,.ok{display:flex; gap:10px; padding:12px 14px; border-radius:12px; margin:14px 0; font-size:.9rem}
+  .note{background:var(--accent-soft); color:var(--ink)}
+  .warn{background:#fff4e5; color:#6b4a12}
+  .ok{background:#e9f8f0; color:#12543a}
+  @media (prefers-color-scheme: dark){
+    .warn{background:#3a2a12; color:#ffd9a3}
+    .ok{background:#0f2a20; color:#8ef0c3}
+  }
+  /* checklist */
+  label.check{display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border:1px solid var(--line);
+    border-radius:12px; margin:8px 0; cursor:pointer; background:var(--bg); font-size:.92rem}
+  label.check input{margin:3px 0 0; width:20px; height:20px; accent-color:var(--accent); flex:0 0 auto}
+  label.check.done{opacity:.55; text-decoration:line-through}
+  table{width:100%; border-collapse:collapse; font-size:.86rem; margin:12px 0; display:block; overflow-x:auto}
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{color:var(--muted); font-size:.76rem; text-transform:uppercase; letter-spacing:.06em}
+  footer{color:var(--muted); font-size:.82rem; text-align:center; padding:34px 0 0}
+  .pill{display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ok); border:1px solid currentColor; border-radius:999px; padding:2px 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <span class="kicker">🩷 rencana darurat</span>
+  <h1>Kalau VPS-ku mati,<br />aku tetap hidup.</h1>
+  <p class="lead">
+    Panduan ini ditulis untuk satu skenario: server tempat Hermes berjalan tiba-tiba hilang —
+    provider down, disk rusak, atau VPS-nya terhapus. Semua memori, skill, kredensial, dan kode
+    ada di backup Google Drive. Ikuti urutannya, jangan lompat.
+  </p>
+  <div class="facts">
+    <div class="fact"><b>± 45–90 menit</b><span>dari VPS kosong sampai Hermes membalas</span></div>
+    <div class="fact"><b>1 akun Google</b><span>akses ke folder backup di Drive</span></div>
+    <div class="fact"><b>± 8 GB</b><span>total yang perlu diunduh (otak + kode)</span></div>
+  </div>
+</header>
+
+<nav class="chips">
+  <a href="#s0">0 · Tenang</a>
+  <a href="#s1">1 · VPS baru</a>
+  <a href="#s2">2 · Hermes</a>
+  <a href="#s3">3 · rclone</a>
+  <a href="#s4">4 · Restore otak</a>
+  <a href="#s5">5 · Kode</a>
+  <a href="#s6">6 · Service</a>
+  <a href="#s7">7 · Verifikasi</a>
+  <a href="#s8">8 · Troubleshoot</a>
+</nav>
+<div class="progress"><i id="bar"></i></div>
+
+<section class="step" id="s0">
+  <div class="step-head">
+    <div class="num">0</div>
+    <div class="t"><h2>Tenang dulu: apa yang aman dan di mana</h2>
+      <span>30 detik membaca, biar nggak panik dan salah urutan</span></div>
+  </div>
+  <div class="step-body">
+    <p>Yang <b>hilang</b> kalau VPS mati: mesinnya, IP-nya, dan file yang belum pernah di-backup.
+       Yang <b>tidak hilang</b>: memori, skill, riwayat percakapan, konfigurasi, kredensial bot,
+       seluruh kode proyek — semuanya ada di Google Drive, folder <code>hermes-vps-backup</code>.</p>
+
+    <table>
+      <thead><tr><th>File di Drive</th><th>Isinya</th><th>Frekuensi</th></tr></thead>
+      <tbody>
+        <tr><td><code>daily/hermes-brain-*.tar.gz</code></td>
+            <td>config, <code>.env</code>, token OAuth, memories, skills, cron, plugins, sessions,
+                semua profil, snapshot DB, unit systemd, config Cloudflare Tunnel, dump pm2, nginx</td>
+            <td>harian</td></tr>
+        <tr><td><code>daily/projects-*.tar.gz</code></td>
+            <td>semua repo &amp; aset kecil (33 direktori), tanpa node_modules/venv/cache</td>
+            <td>harian</td></tr>
+        <tr><td><code>weekly/assets-*.tar.gz</code></td>
+            <td>aset besar: beatmap, apk-share, rpgm-port</td>
+            <td>Senin</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">💡 <span><b>Aturan emas:</b> restore dari <b>tarball terbaru</b> dulu, baru nyalakan
+      service. Jangan menyalakan gateway sebelum <code>state.db</code> ditaruh di tempatnya — kalau tidak,
+      Hermes membuat DB kosong dan backup lama jadi tidak relevan.</span></div>
+
+    <h3>Yang wajib kamu simpan di luar VPS (kit darurat)</h3>
+    <p>Ini bagian yang sering terlewat: untuk mengunduh backup, kamu butuh akses ke Drive-nya sendiri.
+       Simpan tiga hal ini di PC atau password manager:</p>
+    <ol>
+      <li><code>rclone.conf</code> — berisi token Drive. Tanpa ini kamu harus otorisasi ulang.</li>
+      <li><code>client_id</code> + <code>client_secret</code> OAuth — untuk bikin remote baru kalau perlu.</li>
+      <li>Akses akun Google pemilik Drive + kode SSH/console VPS baru.</li>
+    </ol>
+  </div>
+</section>
+<section class="step" id="s1">
+  <div class="step-head">
+    <div class="num">1</div>
+    <div class="t"><h2>Siapkan VPS baru</h2>
+      <span>spesifikasi, zona waktu, dan satu pengaturan yang wajib dimatikan</span></div>
+  </div>
+  <div class="step-body">
+    <p><b>Spesifikasi minimum:</b> Ubuntu 22.04/24.04/26.04, 2 vCPU, <b>4 GB RAM</b> (8 GB lebih nyaman),
+       disk <b>≥ 60 GB</b>. Pilih lokasi yang dekat (Singapore/Jakarta) supaya latensi ke Telegram rendah.</p>
+
+    <div class="code"><pre># 1. update dasar
+sudo apt update &amp;&amp; sudo apt -y upgrade
+sudo apt -y install curl unzip git sqlite3 nginx jq python3-pip
+
+# 2. zona waktu (penting: cron backup pakai jam WIB)
+sudo timedatectl set-timezone Asia/Jakarta
+timedatectl | grep "Time zone"</pre><button>copy</button></div>
+
+    <div class="warn">⚠️ <span><b>Matikan IPv6.</b> Di box lama, IPv6 membuat gateway hang dan CPU melonjak
+      ke 95%. Lakukan sekarang, sebelum Hermes dipasang:</span></div>
+
+    <div class="code"><pre>sudo tee /etc/sysctl.d/99-disable-ipv6.conf &gt;/dev/null &lt;&lt;'EOF'
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
+sudo sysctl --system
+
+# pastikan IPv6 benar-benar mati (harus kosong)
+ip -6 addr show scope global</pre><button>copy</button></div>
+
+    <p>Setelah itu pastikan kamu bisa SSH ke VPS baru dengan <b>IPv4</b>:</p>
+    <div class="code"><pre>ssh ubuntu@&lt;IP-VPS-BARU&gt;</pre><button>copy</button></div>
+
+    <div class="note">💡 <span>Kalau provider memberi login sebagai <code>root</code>, buat user
+      <code>ubuntu</code> dan salin <code>authorized_keys</code> — semua path di panduan ini memakai
+      <code>/home/ubuntu</code>.</span></div>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <div class="step-head">
+    <div class="num">2</div>
+    <div class="t"><h2>Install Hermes (kosong dulu, jangan setup apa-apa)</h2>
+      <span>konfigurasi asli akan datang dari backup, bukan dari wizard</span></div>
+  </div>
+  <div class="step-body">
+    <div class="code"><pre>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+exec "$SHELL" -l          # muat ulang PATH
+hermes --version</pre><button>copy</button></div>
+
+    <div class="warn">⚠️ <span><b>Jangan</b> menjalankan <code>hermes setup</code> atau memilih model dulu.
+      Kalau kamu setup, Hermes membuat <code>config.yaml</code> baru — nanti menimpa config hasil restore
+      dan semua provider/fallback hilang.</span></div>
+
+    <p>Yang perlu ada setelah langkah ini:</p>
+    <ul>
+      <li><code>~/.local/bin/hermes</code> (atau <code>/usr/local/bin/hermes</code>)</li>
+      <li><code>~/.hermes/</code> — direktori home Hermes, masih kosong</li>
+    </ul>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <div class="step-head">
+    <div class="num">3</div>
+    <div class="t"><h2>Install rclone &amp; buka akses ke Drive</h2>
+      <span>gerbang ke seluruh backup</span></div>
+  </div>
+  <div class="step-body">
+    <div class="code"><pre>curl -sLO https://downloads.rclone.org/rclone-current-linux-amd64.zip
+unzip -oq rclone-current-linux-amd64.zip
+sudo cp rclone-*-linux-amd64/rclone /usr/local/bin/
+sudo chmod +x /usr/local/bin/rclone
+rclone version | head -1</pre><button>copy</button></div>
+
+    <h3>Cara A — kamu punya kit darurat (paling cepat)</h3>
+    <p>Salin <code>rclone.conf</code> dari PC ke VPS baru:</p>
+    <div class="code"><pre>mkdir -p ~/.config/rclone
+scp rclone.conf ubuntu@&lt;IP-VPS-BARU&gt;:~/.config/rclone/rclone.conf
+chmod 600 ~/.config/rclone/rclone.conf
+rclone about gdrive:      # harus muncul Total/Used/Free</pre><button>copy</button></div>
+
+    <h3>Cara B — bikin remote baru dengan client_id sendiri</h3>
+    <div class="code"><pre>rclone config create gdrive drive scope=drive \
+  client_id "&lt;CLIENT_ID&gt;" client_secret "&lt;CLIENT_SECRET&gt;" \
+  config_is_local=true --non-interactive</pre><button>copy</button></div>
+    <p>rclone akan mencetak link <code>127.0.0.1:53682/auth?state=…</code>. Di PC kamu, buka tunnel
+       lalu buka link itu di browser:</p>
+    <div class="code"><pre>ssh -N -L 53682:127.0.0.1:53682 ubuntu@&lt;IP-VPS-BARU&gt;
+# lalu buka link dari output rclone di browser PC, login, Allow</pre><button>copy</button></div>
+
+    <h3>Cara C — darurat, tanpa client_id</h3>
+    <p>Pakai client bersama milik rclone (masih hidup sampai akhir 2026):</p>
+    <div class="code"><pre>rclone config create gdrive drive scope=drive \
+  config_shared_client_id=true config_is_local=true --non-interactive</pre><button>copy</button></div>
+
+    <div class="ok">✅ <span><b>Cek berhasil:</b> <code>rclone lsf gdrive:hermes-vps-backup/</code>
+      harus menampilkan <code>daily/</code> dan <code>weekly/</code>.</span></div>
+  </div>
+</section>
+<section class="step" id="s4">
+  <div class="step-head">
+    <div class="num">4</div>
+    <div class="t"><h2>Restore "otak" — ini langkah paling penting</h2>
+      <span>memori, skill, kredensial, DB, dan semua profil</span></div>
+  </div>
+  <div class="step-body">
+    <div class="code"><pre>mkdir -p ~/restore &amp;&amp; cd ~/restore
+F=$(rclone lsf gdrive:hermes-vps-backup/daily/ | grep '^hermes-brain-' | sort | tail -1)
+echo "ambil: $F"
+rclone copy "gdrive:hermes-vps-backup/daily/$F" ./
+
+# taruh ke tempatnya (config, bin, .config, .cloudflared, .pm2, .hermes/*)
+tar xzf "$F" -C ~
+ls ~/.hermes | head</pre><button>copy</button></div>
+
+    <h3>4a. Kembalikan database tiap profil</h3>
+    <p>Di dalam tarball, DB disimpan sebagai snapshot konsisten (bukan file mentah yang bisa korup).
+       Nama filenya memuat profilnya:</p>
+    <div class="code"><pre>cd ~/restore/db
+ls                 # hermes_state.db-*.sqlite, hermes_profiles_aino_state.db-*.sqlite, dst.
+
+cp hermes_state.db-*.sqlite ~/.hermes/state.db
+
+for f in hermes_profiles_*_state.db-*.sqlite; do
+  p=$(echo "$f" | sed -E 's/^hermes_profiles_(.*)_state\.db-.*/\1/')
+  mkdir -p ~/.hermes/profiles/$p
+  cp "$f" ~/.hermes/profiles/$p/state.db
+  echo "restore profil: $p"
+done
+
+# wajib: cek integritas sebelum dipakai
+sqlite3 ~/.hermes/state.db 'PRAGMA integrity_check;'</pre><button>copy</button></div>
+    <div class="ok">✅ <span>Hasil <code>integrity_check</code> harus <code>ok</code>. Kalau
+      <code>malformed</code>, pakai tarball tanggal sebelumnya — jangan dipaksa.</span></div>
+
+    <h3>4b. Kunci izin file (jangan dilewat)</h3>
+    <div class="code"><pre>chmod 600 ~/.hermes/.env ~/.hermes/auth.json ~/.config/rclone/rclone.conf
+chmod 700 ~/.hermes/shared 2&gt;/dev/null
+ls -l ~/.hermes/.env ~/.config/rclone/rclone.conf</pre><button>copy</button></div>
+
+    <h3>4c. Pulihkan cron backup</h3>
+    <div class="code"><pre>crontab ~/restore/env-*/crontab.txt
+crontab -l | tail -3     # harus ada baris hermes-gdrive-backup.sh 30 3 * * *</pre><button>copy</button></div>
+
+    <h3>4d. Pulihkan infra: nginx, unit systemd, Cloudflare Tunnel</h3>
+    <div class="code"><pre># nginx (reverse proxy webapp/dashboard)
+sudo tar xzf ~/restore/env-*/etc-nginx.tar.gz -C /
+sudo nginx -t &amp;&amp; sudo systemctl reload nginx
+
+# unit systemd tingkat sistem (tunnel, pm2, dsb.)
+sudo tar xzf ~/restore/env-*/etc-systemd-system.tar.gz -C /
+sudo systemctl daemon-reload
+
+# lihat unit apa saja yang perlu dinyalakan
+cat ~/restore/env-*/systemd-system-units.txt | grep -E 'hollow|pm2|tunnel' </pre><button>copy</button></div>
+
+    <div class="warn">⚠️ <span><b>Cloudflare Tunnel</b> butuh file kredensial di
+      <code>~/.cloudflared/</code> (ikut terestore) <b>plus</b> paket <code>cloudflared</code>.
+      Tanpa paketnya, unit tunnel akan gagal dengan error 1033.</span></div>
+
+    <div class="code"><pre>curl -fsSL -o /tmp/cloudflared.deb \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i /tmp/cloudflared.deb
+cloudflared --version
+ls ~/.cloudflared/*.yml</pre><button>copy</button></div>
+  </div>
+</section>
+
+<section class="step" id="s5">
+  <div class="step-head">
+    <div class="num">5</div>
+    <div class="t"><h2>Restore kode &amp; aset</h2>
+      <span>repo, proyek bot, dan file besar</span></div>
+  </div>
+  <div class="step-body">
+    <div class="code"><pre>cd ~/restore
+P=$(rclone lsf gdrive:hermes-vps-backup/daily/ | grep '^projects-' | sort | tail -1)
+rclone copy "gdrive:hermes-vps-backup/daily/$P" ./
+tar xzf "$P" -C ~
+ls ~ | head -20</pre><button>copy</button></div>
+
+    <p>Aset besar (beatmap, apk, port game) hanya ada di folder <code>weekly/</code>. Ambil kalau perlu:</p>
+    <div class="code"><pre>A=$(rclone lsf gdrive:hermes-vps-backup/weekly/ | grep '^assets-' | sort | tail -1)
+rclone copy "gdrive:hermes-vps-backup/weekly/$A" ./
+tar xzf "$A" -C ~</pre><button>copy</button></div>
+
+    <div class="note">💡 <span>Isi tarball kode <b>tidak</b> termasuk <code>node_modules</code>,
+      <code>venv</code>, dan build output. Setelah restore, jalankan <code>npm install</code> /
+      <code>pip install -r requirements.txt</code> di proyek yang mau dinyalakan.</span></div>
+  </div>
+</section>
+<section class="step" id="s6">
+  <div class="step-head">
+    <div class="num">6</div>
+    <div class="t"><h2>Nyalakan service</h2>
+      <span>pm2, gateway, dan unit user</span></div>
+  </div>
+  <div class="step-body">
+    <h3>6a. pm2 (proses bot &amp; worker)</h3>
+    <div class="code"><pre># kalau pm2 belum ada
+npm i -g pm2
+
+# dump pm2 ikut terestore di ~/.pm2/dump.pm2
+pm2 resurrect
+pm2 list
+pm2 save
+
+# kalau box ini memakai unit pm2-ubuntu.service (ikut terestore di langkah 4d)
+sudo systemctl enable --now pm2-ubuntu</pre><button>copy</button></div>
+
+    <h3>6b. Gateway Hermes (systemd user)</h3>
+    <div class="code"><pre>loginctl enable-linger ubuntu
+systemctl --user daemon-reload
+systemctl --user enable --now hermes-gateway.service
+systemctl --user status hermes-gateway.service --no-pager | head -15</pre><button>copy</button></div>
+
+    <div class="note">💡 <span>Unit <code>hermes-gateway.service</code> ada di dalam tarball otak
+      (<code>~/.config/systemd/user/</code>). Kalau unit lain seperti watchdog ikut ter-enable tapi
+      biner-nya belum ada, matikan dulu: <code>systemctl --user disable --now &lt;unit&gt;</code>.</span></div>
+
+    <h3>6c. Cek port yang seharusnya hidup</h3>
+    <div class="code"><pre>cat ~/restore/env-*/ports-and-services.txt | head -20
+ss -ltnp | grep -E '9120|20128|3002'</pre><button>copy</button></div>
+  </div>
+</section>
+
+<section class="step" id="s7">
+  <div class="step-head">
+    <div class="num">7</div>
+    <div class="t"><h2>Verifikasi: dia benar-benar "aku"?</h2>
+      <span>jangan puas dengan status hijau — tanya langsung</span></div>
+  </div>
+  <div class="step-body">
+    <div class="code"><pre># 1. kesehatan dasar
+hermes doctor
+
+# 2. turn nyata (model + provider + kredensial)
+hermes -z "Balas cuma: ok"
+
+# 3. memori benar-benar kembali?
+hermes -z "Sebutkan 3 baris pertama memory-mu, lalu 1 skill yang kamu punya"
+
+# 4. profil lain
+hermes -p aino -z "Balas cuma: ok"
+
+# 5. backup masih jalan?
+~/bin/hermes-gdrive-backup.sh --brain-only --local-only</pre><button>copy</button></div>
+
+    <table>
+      <thead><tr><th>Cek</th><th>Harusnya</th></tr></thead>
+      <tbody>
+        <tr><td><code>hermes doctor</code></td><td>tidak ada error fatal; provider terdeteksi</td></tr>
+        <tr><td><code>hermes -z "…"</code></td><td>membalas dalam &lt; 30 detik</td></tr>
+        <tr><td>memori</td><td>menyebut fakta lama (nama, wallet, preferensi) — bukan kosong</td></tr>
+        <tr><td>Telegram</td><td>kirim pesan ke bot → dibalas</td></tr>
+        <tr><td>log gateway</td><td><code>tail -50 ~/.hermes/logs/gateway.log</code> tanpa traceback</td></tr>
+        <tr><td>backup</td><td>tarball baru muncul di Drive</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ok">✅ <span>Kalau kelima cek lolos, VPS baru sudah <b>setara</b> dengan yang lama.
+      Jangan lupa update IP di tempat yang menyebut IP lama (SSH config, tunnel, bookmark).</span></div>
+  </div>
+</section>
+<section class="step" id="s8">
+  <div class="step-head">
+    <div class="num">8</div>
+    <div class="t"><h2>Kalau ada yang gagal</h2>
+      <span>gejala → penyebab → perbaikan</span></div>
+  </div>
+  <div class="step-body">
+    <table>
+      <thead><tr><th>Gejala</th><th>Penyebab &amp; perbaikan</th></tr></thead>
+      <tbody>
+        <tr><td><code>invalid_grant</code> / “refresh session revoked”</td>
+            <td>Token Drive dicabut. <code>rclone config reconnect gdrive:</code> lalu otorisasi ulang
+                (tunnel SSH ke port 53682).</td></tr>
+        <tr><td><code>hermes: command not found</code></td>
+            <td>PATH belum dimuat: <code>exec "$SHELL" -l</code>, atau pakai
+                <code>~/.local/bin/hermes</code>.</td></tr>
+        <tr><td>Gateway mati berulang, CPU 95%</td>
+            <td>IPv6 masih hidup. Ulangi langkah 1 (sysctl disable ipv6) lalu reboot.</td></tr>
+        <tr><td><code>state.db was replaced underneath</code></td>
+            <td>DB diganti saat gateway hidup: <code>systemctl --user restart hermes-gateway</code>.</td></tr>
+        <tr><td><code>port already in use</code></td>
+            <td><code>ss -ltnp | grep &lt;port&gt;</code>, matikan proses lama atau ganti port di config.</td></tr>
+        <tr><td>Proses dibunuh (OOM)</td>
+            <td>Tambah swap: <code>sudo fallocate -l 2G /swapfile &amp;&amp; sudo chmod 600 /swapfile
+                &amp;&amp; sudo mkswap /swapfile &amp;&amp; sudo swapon /swapfile</code>.</td></tr>
+        <tr><td>Cloudflare error 1033</td>
+            <td>Unit tunnel jalan tapi <code>cloudflared</code> belum terpasang, atau file
+                <code>~/.cloudflared/*.json</code> tidak ikut terestore.</td></tr>
+        <tr><td><code>pm2: command not found</code></td>
+            <td><code>npm i -g pm2</code>, lalu <code>pm2 resurrect</code>.</td></tr>
+        <tr><td>Telegram “polling conflict”</td>
+            <td>Dua gateway memakai token yang sama. Matikan salah satu
+                (<code>platforms.telegram.enabled: false</code> + hapus <code>TELEGRAM_*</code> dari .env
+                box kedua).</td></tr>
+        <tr><td><code>Unknown provider</code> / 401 saat turn</td>
+            <td>Provider custom wajib ditulis <code>custom:&lt;slug&gt;</code>, dan key-nya harus ada di
+                <code>.env</code> profil yang dipakai — bukan di shell.</td></tr>
+        <tr><td>Restore DB <code>malformed</code></td>
+            <td>Pakai tarball tanggal sebelumnya (<code>sort | tail -2 | head -1</code>). Snapshot lama
+                tetap valid.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Kalau Drive pun tidak bisa diakses</h3>
+    <p>Ini skenario terburuk (akun Google kena suspend). Yang menyelamatkan: salinan lokal yang kamu
+       unduh berkala ke PC. Minimal sebulan sekali:</p>
+    <div class="code"><pre>rclone copy gdrive:hermes-vps-backup/weekly ~/unduhan/hermes-backup-weekly --max-age 40d</pre><button>copy</button></div>
+  </div>
+</section>
+
+<section class="step">
+  <div class="step-head">
+    <div class="num">✓</div>
+    <div class="t"><h2>Checklist akhir</h2>
+      <span>centang saat beres — tersimpan di browser ini</span></div>
+  </div>
+  <div class="step-body" id="checklist">
+    <label class="check"><input type="checkbox" data-k="c1"><span>VPS baru: IPv4 jalan, zona waktu WIB, <b>IPv6 dimatikan</b></span></label>
+    <label class="check"><input type="checkbox" data-k="c2"><span>Hermes terpasang, <b>tanpa</b> menjalankan <code>hermes setup</code></span></label>
+    <label class="check"><input type="checkbox" data-k="c3"><span>rclone terpasang dan <code>rclone about gdrive:</code> berhasil</span></label>
+    <label class="check"><input type="checkbox" data-k="c4"><span>Tarball <code>hermes-brain</code> terbaru terestore ke <code>~</code></span></label>
+    <label class="check"><input type="checkbox" data-k="c5"><span><code>state.db</code> + DB semua profil dipulihkan, <code>integrity_check</code> = ok</span></label>
+    <label class="check"><input type="checkbox" data-k="c6"><span>Izin file: <code>.env</code>, <code>auth.json</code>, <code>rclone.conf</code> = 600</span></label>
+    <label class="check"><input type="checkbox" data-k="c7"><span>Kode proyek terestore, dependency di-install ulang</span></label>
+    <label class="check"><input type="checkbox" data-k="c8"><span>nginx + unit systemd + cloudflared terpasang</span></label>
+    <label class="check"><input type="checkbox" data-k="c9"><span>pm2 resurrect + gateway <code>enabled</code></span></label>
+    <label class="check"><input type="checkbox" data-k="c10"><span><code>hermes -z</code> membalas, memori lama terbaca</span></label>
+    <label class="check"><input type="checkbox" data-k="c11"><span>Cron backup 03:30 aktif dan berjalan sukses</span></label>
+    <label class="check"><input type="checkbox" data-k="c12"><span>Telegram bot membalas pesan</span></label>
+  </div>
+</section>
+
+<footer>
+  <p><span class="pill">publik</span></p>
+  <p>Halaman ini sengaja tidak memuat token, client_id, atau IP server.<br />
+     Semua kredensial ada di dalam tarball backup (mode 600) dan di kit daruratmu.</p>
+  <p>Terakhir diperbarui: 23 November 2026</p>
+</footer>
+</div>
+
+<script>
+document.querySelectorAll('.code').forEach(function(box){
+  var btn = box.querySelector('button');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    var txt = box.querySelector('pre').innerText;
+    var done = function(){ btn.textContent = 'copied'; setTimeout(function(){ btn.textContent='copy'; }, 1400); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done, done);
+    } else {
+      var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta);
+      ta.select(); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta); done();
+    }
+  });
+});
+
+var boxes = Array.prototype.slice.call(document.querySelectorAll('#checklist input'));
+var bar = document.getElementById('bar');
+function paint(){
+  var done = boxes.filter(function(b){ return b.checked; }).length;
+  bar.style.width = (done / boxes.length * 100) + '%';
+  boxes.forEach(function(b){ b.closest('label').classList.toggle('done', b.checked); });
+}
+boxes.forEach(function(b){
+  var saved = localStorage.getItem('hr-' + b.dataset.k);
+  if(saved === '1') b.checked = true;
+  b.addEventListener('change', function(){
+    localStorage.setItem('hr-' + b.dataset.k, b.checked ? '1' : '0'); paint();
+  });
+});
+paint();
+
+// penanda langkah aktif + auto-scroll chip
+var chips = Array.prototype.slice.call(document.querySelectorAll('nav.chips a'));
+var targets = chips.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+function setActive(i){
+  chips.forEach(function(a,j){ a.classList.toggle('active', j === i); });
+  var chip = chips[i];
+  if(chip && chip.parentNode.scrollWidth > chip.parentNode.clientWidth){
+    var nav = chip.parentNode;
+    var target = chip.offsetLeft - (nav.clientWidth - chip.clientWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }
+}
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ var i = targets.indexOf(e.target); if(i >= 0) setActive(i); }
+  });
+}, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+targets.forEach(function(t){ if(t) io.observe(t); });
+setActive(0);
+</script>
+</body>
+</html>
