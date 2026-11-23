@@ -41,13 +41,17 @@
   .stat{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--bg)}
   .stat b{display:block;font-size:1.25rem;line-height:1.2}
   .stat span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
-  table{width:100%;border-collapse:collapse;font-size:.84rem}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; table-layout:fixed}
   th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
   th{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-  td.name{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;word-break:break-all}
+  th:nth-child(1),td:nth-child(1){width:52%}
+  th:nth-child(2),td:nth-child(2){width:20%}
+  th:nth-child(3),td:nth-child(3){width:28%}
+  td.name{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;
+    overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   td.num{white-space:nowrap;text-align:right;color:var(--muted)}
-  .pill{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
-    border:1px solid currentColor;border-radius:999px;padding:1px 8px}
+  .pill{display:inline-block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+    border:1px solid currentColor;border-radius:999px;padding:1px 6px;white-space:nowrap}
   .pill.daily{color:var(--accent)} .pill.weekly{color:var(--ok)}
   .empty{color:var(--muted);font-size:.9rem}
   footer{margin-top:28px;color:var(--muted);font-size:.78rem;text-align:center}
