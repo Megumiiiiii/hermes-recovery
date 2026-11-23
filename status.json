@@ -1,20 +1,38 @@
 {
-  "generated_at": "2026-11-23T13:02:16+07:00",
-  "last_run": "2026-11-23T12:57:24.759000000",
-  "next_run": "24 Nov 03:30 WIB",
+  "generated_at": "2026-11-24T03:33:25+07:00",
+  "last_run": "2026-11-24T03:32:22.389000000",
+  "next_run": "25 Nov 03:30 WIB",
   "schedule": "setiap hari 03:30 WIB (cron)",
   "host_label": "vps-utama",
   "counts": {
     "brain": 7,
-    "projects": 1,
+    "projects": 2,
     "assets": 1
   },
   "retention": {
     "daily": 7,
     "weekly": 4
   },
-  "drive_used_bytes": 10404232422,
+  "drive_used_bytes": 12024295201,
   "files": [
+    {
+      "name": "projects-20261124-033002.tar.gz",
+      "size": 1326560008,
+      "kind": "projects",
+      "where": [
+        "daily"
+      ],
+      "time": "2026-11-24T03:32:22.389000000"
+    },
+    {
+      "name": "hermes-brain-20261124-033002.tar.gz",
+      "size": 293502771,
+      "kind": "brain",
+      "where": [
+        "daily"
+      ],
+      "time": "2026-11-24T03:30:45.146000000"
+    },
     {
       "name": "hermes-brain-20261123-125651.tar.gz",
       "size": 296615643,
@@ -91,15 +109,6 @@
         "daily"
       ],
       "time": "2026-11-23T11:24:02.948000000"
-    },
-    {
-      "name": "hermes-brain-20261123-111541.tar.gz",
-      "size": 297640821,
-      "kind": "brain",
-      "where": [
-        "daily"
-      ],
-      "time": "2026-11-23T11:16:13.192000000"
     }
   ]
 }
