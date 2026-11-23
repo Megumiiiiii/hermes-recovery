@@ -142,10 +142,12 @@ function render(d){
   document.getElementById('ret-w').textContent = (d.retention && d.retention.weekly ? d.retention.weekly : '–') + ' file';
 
   var rows = (d.files || []).slice(0, 12).map(function(f){
-    var kind = f.kind === 'weekly' ? 'weekly' : 'daily';
+    var where = (f.where && f.where.length ? f.where : ['daily']);
+    var label = where.join(' + ');
+    var cls = (where.indexOf('weekly') >= 0 && where.length === 1) ? 'weekly' : 'daily';
     return '<tr><td class="name">' + f.name + '</td>' +
            '<td class="num">' + fmtSize(f.size) + '</td>' +
-           '<td><span class="pill ' + kind + '">' + kind + '</span></td></tr>';
+           '<td><span class="pill ' + cls + '">' + label + '</span></td></tr>';
   }).join('');
   document.getElementById('rows').innerHTML = rows || '<tr><td colspan="3" class="empty">belum ada file</td></tr>';
 
