@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Status Backup — Hermes VPS</title>
+<meta name="description" content="Status backup otomatis VPS Hermes: kapan terakhir jalan, ukuran, dan retensi." />
+<meta name="theme-color" content="#0d0b12" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩷</text></svg>" />
+<style>
+  :root{
+    --bg:#fdf7fa; --card:#fff; --ink:#2a1f2a; --muted:#7d6b76; --line:#f0dde6;
+    --accent:#e8437f; --accent-soft:#fde7ef; --ok:#1f9d63; --warn:#b06a00; --bad:#c02b4a;
+    --shadow:0 1px 2px rgba(42,31,42,.06), 0 8px 24px rgba(42,31,42,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0d0b12; --card:#161320; --ink:#f2e9f0; --muted:#a493a3; --line:#2a2337;
+      --accent:#ff5fa2; --accent-soft:#2a1725; --ok:#3ddc97; --warn:#ffc46b; --bad:#ff7a95;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.35); }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 70px}
+  a{color:var(--accent);text-decoration:none}
+  h1{font-size:clamp(1.5rem,5vw,2rem);margin:0;letter-spacing:-.02em}
+  h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:26px 0 8px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+  .back{font-size:.8rem;font-weight:600;color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+  .hero{display:flex;gap:14px;align-items:center}
+  .dot{flex:0 0 12px;height:12px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 4px color-mix(in srgb,currentColor 12%,transparent)}
+  .dot.ok{background:var(--ok);color:var(--ok)}
+  .dot.warn{background:var(--warn);color:var(--warn)}
+  .dot.bad{background:var(--bad);color:var(--bad)}
+  .hero b{display:block;font-size:1.05rem}
+  .hero span{color:var(--muted);font-size:.86rem}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  @media (max-width:520px){ .grid{grid-template-columns:1fr 1fr} .grid .wide{grid-column:1/-1} }
+  .stat{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--bg)}
+  .stat b{display:block;font-size:1.25rem;line-height:1.2}
+  .stat span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:.84rem}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  td.name{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;word-break:break-all}
+  td.num{white-space:nowrap;text-align:right;color:var(--muted)}
+  .pill{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    border:1px solid currentColor;border-radius:999px;padding:1px 8px}
+  .pill.daily{color:var(--accent)} .pill.weekly{color:var(--ok)}
+  .empty{color:var(--muted);font-size:.9rem}
+  footer{margin-top:28px;color:var(--muted);font-size:.78rem;text-align:center}
+  .refresh{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:10px;
+    padding:6px 12px;font-size:.76rem;font-weight:600;cursor:pointer}
+  .refresh:active{background:var(--accent-soft);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="/">← panduan pemulihan</a>
+    <button class="refresh" id="reload">refresh</button>
+  </div>
+  <h1>Status Backup</h1>
+
+  <div class="card" style="margin-top:14px">
+    <div class="hero">
+      <i class="dot" id="dot"></i>
+      <div>
+        <b id="headline">memuat…</b>
+        <span id="sub">mengambil status.json</span>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="stat"><b id="n-brain">–</b><span>otak (harian)</span></div>
+      <div class="stat"><b id="n-proj">–</b><span>kode (harian)</span></div>
+      <div class="stat"><b id="n-assets">–</b><span>aset (mingguan)</span></div>
+      <div class="stat wide"><b id="used">–</b><span>terpakai di Drive</span></div>
+      <div class="stat"><b id="ret-d">–</b><span>retensi harian</span></div>
+      <div class="stat"><b id="ret-w">–</b><span>retensi mingguan</span></div>
+    </div>
+  </div>
+
+  <h2>File terbaru</h2>
+  <div class="card" style="padding:6px 10px">
+    <table>
+      <thead><tr><th>Nama</th><th style="text-align:right">Ukuran</th><th>Jenis</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="3" class="empty">memuat…</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Jadwal</h2>
+  <div class="card"><div id="sched" class="empty">–</div></div>
+
+  <footer>
+    Data diambil dari <code>status.json</code> yang ditulis setiap backup selesai.<br />
+    Halaman ini tidak memuat token, kredensial, atau IP server.
+  </footer>
+</div>
+
+<script>
+var fmtSize = function(b){
+  if(!b && b !== 0) return '–';
+  var u = ['B','KB','MB','GB']; var i = 0; var v = b;
+  while(v >= 1024 && i < u.length-1){ v /= 1024; i++; }
+  return (i ? v.toFixed(1) : v) + ' ' + u[i];
+};
+var ago = function(iso){
+  if(!iso) return '–';
+  var d = new Date(iso); var s = (Date.now() - d.getTime())/1000;
+  if(s < 0) return 'baru saja';
+  var m = s/60, h = m/60, day = h/24;
+  if(m < 2) return 'baru saja';
+  if(m < 60) return Math.round(m) + ' menit lalu';
+  if(h < 24) return Math.round(h) + ' jam lalu';
+  return Math.round(day) + ' hari lalu';
+};
+var localTime = function(iso){
+  if(!iso) return '–';
+  try{ return new Date(iso).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}); }
+  catch(e){ return iso; }
+};
+
+function render(d){
+  var newest = d.last_run || null;
+  var ageH = newest ? (Date.now() - new Date(newest).getTime())/3600000 : 999;
+  var dot = document.getElementById('dot');
+  dot.className = 'dot ' + (ageH < 30 ? 'ok' : (ageH < 72 ? 'warn' : 'bad'));
+  document.getElementById('headline').textContent =
+    ageH < 30 ? 'Backup terakhir sukses' : (ageH < 72 ? 'Backup agak tertunda' : 'Backup sudah lama tidak jalan');
+  document.getElementById('sub').textContent =
+    (newest ? localTime(newest) + ' · ' + ago(newest) : 'belum ada data') +
+    (d.next_run ? ' · berikutnya ' + d.next_run : '');
+
+  var counts = d.counts || {};
+  document.getElementById('n-brain').textContent = counts.brain ?? '–';
+  document.getElementById('n-proj').textContent = counts.projects ?? '–';
+  document.getElementById('n-assets').textContent = counts.assets ?? '–';
+  document.getElementById('used').textContent = fmtSize(d.drive_used_bytes);
+  document.getElementById('ret-d').textContent = (d.retention && d.retention.daily ? d.retention.daily : '–') + ' file';
+  document.getElementById('ret-w').textContent = (d.retention && d.retention.weekly ? d.retention.weekly : '–') + ' file';
+
+  var rows = (d.files || []).slice(0, 12).map(function(f){
+    var kind = f.kind === 'weekly' ? 'weekly' : 'daily';
+    return '<tr><td class="name">' + f.name + '</td>' +
+           '<td class="num">' + fmtSize(f.size) + '</td>' +
+           '<td><span class="pill ' + kind + '">' + kind + '</span></td></tr>';
+  }).join('');
+  document.getElementById('rows').innerHTML = rows || '<tr><td colspan="3" class="empty">belum ada file</td></tr>';
+
+  var s = [];
+  if(d.schedule) s.push('Jadwal: <b>' + d.schedule + '</b>');
+  if(d.host_label) s.push('Host: ' + d.host_label);
+  s.push('Ditulis: ' + localTime(d.generated_at));
+  document.getElementById('sched').innerHTML = s.join('<br />');
+}
+
+function load(){
+  fetch('status.json?ts=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(render)
+    .catch(function(e){
+      document.getElementById('dot').className = 'dot bad';
+      document.getElementById('headline').textContent = 'status.json belum tersedia';
+      document.getElementById('sub').textContent = e.message + ' — jalankan backup sekali untuk membuatnya';
+    });
+}
+document.getElementById('reload').addEventListener('click', load);
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
